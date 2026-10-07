@@ -30,7 +30,7 @@ bash ingetrazo.sh --debug   # = bash -x, komplette Fehlermeldungskette + Log unt
 | Zweck | Freier 3D-Modeler (Architektur/Ingenieurwesen) als Browser-Desktop im LXC |
 | Tech-Stack | Python/PySide6 + venv `/opt/ingetrazo/.venv`, XFCE, TigerVNC `:1/5901` (localhost), noVNC/websockify `:6080` |
 | GitHub-Repo (Upstream) | `https://github.com/ingelibre/ingetrazo` (Quelle: Git-Clone `main`) |
-| Web-Zugang | `http://<LXC-IP>:6080` (noVNC), VNC ` <IP>:5901` (nur localhost/SSH-Tunnel) |
+| Web-Zugang | `http://<LXC-IP>:6080` (noVNC, fragt das **VNC-Passwort** aus der Schluss-Box ab), VNC ` <IP>:5901` (nur localhost/SSH-Tunnel) |
 | Standard-Ressourcen | 2 vCPU / 4096 MB RAM / 512 MB Swap / 10 GB Disk |
 | CT-ID | immer die **nächste freie ID** (`pvesh get /cluster/nextid`), außer `--ctid` gesetzt |
 | Template | `debian-12-standard` (neuestes auf Storage `local`) |
@@ -58,8 +58,9 @@ Erwartete Schlussausgabe (Beispiel):
   App          : IngeTrazo – 3D-Modeler im Browser-Desktop
   Container    : CT 100 (Hostname: ingetrazo, unprivilegiert, onboot=1)
   Ressourcen   : 2 vCPU / 4096 MB RAM / 10 GB Disk
-  Web Desktop  : http://192.168.1.100:6080
+  Web Desktop  : http://192.168.1.100:6080  (VNC-Passwort im Browser eingeben)
   VNC          : 192.168.1.100:5901 (nur via SSH-Tunnel, VNC bindet localhost)
+  VNC-Passwort : <einmalig angezeigt, bei Re-Run neu>
   ...
   Log          : /tmp/ingetrazo-install-2026-....log
 ==========================================================

@@ -223,7 +223,20 @@ pct exec "$CT_ID" -- bash -c '
   /opt/ingetrazo/.venv/bin/pip install -r /opt/ingetrazo/requirements.txt
   mkdir -p /home/ingetrazo/.vnc /home/ingetrazo/.config/autostart
   chown -R ingetrazo:ingetrazo /opt/ingetrazo /home/ingetrazo
+  # VNC braucht eine Passwort-Datei, sonst fragt vncserver interaktiv
+  # (getpassword error: Inappropriate ioctl) und der Service stirbt.
+  # Darum hier nicht-interaktiv erzeugen (TigerVNC nutzt die ersten 8 Zeichen).
+  VNC_PASS="$(openssl rand -base64 18 | tr -dc A-Za-z0-9 | head -c 12)"
+  su -s /bin/bash ingetrazo -c "echo \"$VNC_PASS\" | vncpasswd -f > /home/ingetrazo/.vnc/passwd"
+  chmod 600 /home/ingetrazo/.vnc/passwd
+  chown ingetrazo:ingetrazo /home/ingetrazo/.vnc/passwd
+  printf "%s" "$VNC_PASS" > /root/.ingetrazo-vnc-pass
+  chmod 600 /root/.ingetrazo-vnc-pass
 '
+
+VNC_PASS="$(pct exec "$CT_ID" -- cat /root/.ingetrazo-vnc-pass 2>/dev/null || true)"
+[[ -n "${VNC_PASS:-}" ]] || { msg_error "VNC-Passwort-Datei /root/.ingetrazo-vnc-pass fehlt im Container."; exit 1; }
+msg_ok "VNC-Passwort erzeugt (wird unten einmalig angezeigt)."
 
 pct exec "$CT_ID" -- test -f /opt/ingetrazo/main.py \
   || { msg_error "Checkout unvollstaendig: /opt/ingetrazo/main.py fehlt im Container."; exit 1; }
@@ -297,8 +310,10 @@ WantedBy=multi-user.target
 UNITNOVNC
 fi
 pct exec "$CT_ID" -- systemctl daemon-reload
-pct exec "$CT_ID" -- systemctl enable --now ingetrazo-vnc
-pct exec "$CT_ID" -- systemctl enable --now ingetrazo-novnc
+pct exec "$CT_ID" -- systemctl enable ingetrazo-vnc ingetrazo-novnc
+# restart statt start: Re-Runs (Update-Modus, neues VNC-Passwort) aktivieren so sicher
+pct exec "$CT_ID" -- systemctl restart ingetrazo-vnc
+pct exec "$CT_ID" -- systemctl restart ingetrazo-novnc
 msg_ok "VNC (:5901 localhost) + noVNC (:6080) aktiv."
 
 # ---------------------------------------------------------------------------
@@ -332,8 +347,9 @@ echo "  App          : IngeTrazo – 3D-Modeler im Browser-Desktop"
 echo "  Upstream     : $UPSTREAM_REPO"
 echo "  Container    : CT $CT_ID (Hostname: $HOSTNAME_ARG, unprivilegiert, onboot=1)"
 echo "  Ressourcen   : $CORES vCPU / $RAM MB RAM / $DISK GB Disk"
-echo "  Web Desktop  : http://${CT_IP}:${APP_PORT}"
+echo "  Web Desktop  : http://${CT_IP}:${APP_PORT}  (VNC-Passwort im Browser eingeben)"
 echo "  VNC          : ${CT_IP}:5901 (nur via SSH-Tunnel, VNC bindet localhost)"
+echo "  VNC-Passwort : ${VNC_PASS} (nur jetzt angezeigt!)"
 echo "  Root-Passwort: ${PASSWORD_ARG:-<bestehender CT, unveraendert>} (nur jetzt angezeigt!)"
 echo "  Services     : systemctl status ingetrazo-vnc ingetrazo-novnc  (im Container via: pct enter $CT_ID)"
 echo "  Update       : Skript erneut laufen lassen (idempotent, git pull + pip upgrade)"
