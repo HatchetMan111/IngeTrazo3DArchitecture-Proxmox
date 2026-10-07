@@ -204,7 +204,7 @@ pct exec "$CT_ID" -- bash -c '
   set -euo pipefail
   export DEBIAN_FRONTEND=noninteractive
   apt-get update
-  apt-get install -y git curl ca-certificates python3 python3-venv python3-pip libgl1 libegl1 libxkbcommon0 libdbus-1-3 libfontconfig1 mesa-utils xfce4 xfce4-terminal dbus-x11 tigervnc-standalone-server tigervnc-common novnc websockify
+  apt-get install -y git curl ca-certificates python3 python3-venv python3-pip libgl1 libegl1 libxkbcommon0 libxkbcommon-x11-0 libdbus-1-3 libfontconfig1 libxcb-cursor0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 mesa-utils xfce4 xfce4-terminal dbus-x11 tigervnc-standalone-server tigervnc-common novnc websockify
   id ingetrazo >/dev/null 2>&1 || useradd -m -s /bin/bash ingetrazo
   if [ ! -d /opt/ingetrazo/.git ]; then
     rm -rf /opt/ingetrazo
