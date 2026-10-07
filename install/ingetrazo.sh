@@ -32,6 +32,7 @@ DEFAULT_DISK="10"
 DEFAULT_BRIDGE="vmbr0"
 DEFAULT_TEMPLATE_STORE="local"
 DEFAULT_OS="debian-12-standard"
+DEFAULT_GEOMETRY="1920x1080"
 UNPRIVILEGED="1"
 FEATURES="nesting=1"
 
@@ -43,6 +44,7 @@ CT_ID_ARG="${CT_ID:-${CTID:-}}"
 CORES_ARG="${CORES:-$DEFAULT_CORES}"
 RAM_ARG="${RAM:-$DEFAULT_RAM}"
 DISK_ARG="${DISK:-$DEFAULT_DISK}"
+GEOMETRY_ARG="${GEOMETRY:-$DEFAULT_GEOMETRY}"
 
 DEBUG="${DEBUG:-0}"
 LOG_FILE="/tmp/${APP}-install-$(date +%F-%H%M%S).log"
@@ -88,6 +90,7 @@ Optionen:
   --bridge NAME        Netzwerk-Bridge (Default: ${DEFAULT_BRIDGE})
   --password PW        Root-Passwort (Default: zufaellig generiert, wird angezeigt)
   --ssh-key PATH       SSH Public Key in den Container uebernehmen (optional)
+  --geometry AxB       Desktop-Aufloesung (Default: ${DEFAULT_GEOMETRY}, z.B. 1920x1080)
   --debug              bash -x + maximale Fehlermeldungskette
   -h, --help           diese Hilfe
 EOF
@@ -98,7 +101,7 @@ EOF
 # ---------------------------------------------------------------------------
 CT_ID="$CT_ID_ARG" HOSTNAME_ARG="$APP" CORES="$CORES_ARG" RAM="$RAM_ARG" DISK="$DISK_ARG"
 STORAGE_ARG="" TEMPLATE_STORE="$DEFAULT_TEMPLATE_STORE" BRIDGE="$DEFAULT_BRIDGE"
-PASSWORD_ARG="" SSH_KEY_ARG=""
+PASSWORD_ARG="" SSH_KEY_ARG="" GEOMETRY="$GEOMETRY_ARG"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --ctid) CT_ID="$2"; shift 2;;
@@ -111,6 +114,7 @@ while [[ $# -gt 0 ]]; do
     --bridge) BRIDGE="$2"; shift 2;;
     --password) PASSWORD_ARG="$2"; shift 2;;
     --ssh-key) SSH_KEY_ARG="$2"; shift 2;;
+    --geometry) GEOMETRY="$2"; shift 2;;
     --debug) DEBUG="1"; set -x; shift;;
     -h|--help) usage; exit 0;;
     *) msg_error "Unbekannte Option: $1"; usage; exit 1;;
@@ -282,7 +286,7 @@ User=ingetrazo
 Group=ingetrazo
 Environment=HOME=/home/ingetrazo
 ExecStartPre=/bin/mkdir -p /home/ingetrazo/.vnc
-ExecStart=/usr/bin/vncserver :1 -localhost yes -geometry 1600x900 -depth 24
+ExecStart=/usr/bin/vncserver :1 -localhost yes -geometry ${GEOMETRY} -depth 24
 ExecStop=/usr/bin/vncserver -kill :1
 Restart=always
 RestartSec=5
@@ -290,6 +294,9 @@ RestartSec=5
 WantedBy=multi-user.target
 UNITVNC
 fi
+# Gewuenschte Aufloesung in die Unit schreiben (auch wenn sie per curl aus dem Repo kam)
+pct exec "$CT_ID" -- sed -i "s/-geometry [0-9]*x[0-9]*/-geometry ${GEOMETRY}/" /etc/systemd/system/ingetrazo-vnc.service
+msg_ok "Desktop-Aufloesung: ${GEOMETRY}."
 if pct exec "$CT_ID" -- curl -fsSL -o /etc/systemd/system/ingetrazo-novnc.service "$NOVNC_SERVICE_URL" 2>/dev/null; then
   msg_ok "ingetrazo-novnc.service aus Repo uebernommen."
 else

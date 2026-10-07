@@ -32,6 +32,7 @@ bash ingetrazo.sh --debug   # = bash -x, komplette Fehlermeldungskette + Log unt
 | GitHub-Repo (Upstream) | `https://github.com/ingelibre/ingetrazo` (Quelle: Git-Clone `main`) |
 | Web-Zugang | `http://<LXC-IP>:6080` (noVNC, fragt das **VNC-Passwort** aus der Schluss-Box ab), VNC ` <IP>:5901` (nur localhost/SSH-Tunnel) |
 | Standard-Ressourcen | 2 vCPU / 4096 MB RAM / 512 MB Swap / 10 GB Disk |
+| Desktop-Auflösung | `1920x1080` (Default, per `--geometry AxB` / `GEOMETRY=` anpassbar, z.B. `--geometry 2560x1440`) |
 | CT-ID | immer die **nächste freie ID** (`pvesh get /cluster/nextid`), außer `--ctid` gesetzt |
 | Template | `debian-12-standard` (neuestes auf Storage `local`) |
 | LXC-Features | **unprivilegiert** (`--unprivileged 1`), `nesting=1`, `onboot: 1` |
@@ -65,6 +66,14 @@ Erwartete Schlussausgabe (Beispiel):
   Log          : /tmp/ingetrazo-install-2026-....log
 ==========================================================
 ```
+
+## Anzeige / Vollbild
+
+- Der Desktop läuft mit der Geometrie aus `--geometry` (Default `1920x1080`).
+  Beispiel: `bash ingetrazo.sh --ctid 103 --geometry 2560x1440`.
+- In noVNC: Zahnrad-Menü (links) → Vollbild-Schalter für echtes Fullscreen,
+  bei Bedarf `Scaling Mode: Remote resize` wählen, damit der Desktop dem
+  Browserfenster folgt (braucht kurz Neustart der Sitzung).
 
 ## Reboot-Test (Reboot-sicher belegen)
 

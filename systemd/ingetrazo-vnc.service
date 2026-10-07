@@ -9,7 +9,7 @@ User=ingetrazo
 Group=ingetrazo
 Environment=HOME=/home/ingetrazo
 ExecStartPre=/bin/mkdir -p /home/ingetrazo/.vnc
-ExecStart=/usr/bin/vncserver :1 -localhost yes -geometry 1600x900 -depth 24
+ExecStart=/usr/bin/vncserver :1 -localhost yes -geometry 1920x1080 -depth 24
 ExecStop=/usr/bin/vncserver -kill :1
 Restart=always
 RestartSec=5
