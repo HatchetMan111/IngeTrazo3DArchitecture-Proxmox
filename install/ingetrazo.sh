@@ -243,12 +243,14 @@ pct exec "$CT_ID" -- test -f /opt/ingetrazo/main.py \
 msg_ok "Checkout ok (main.py vorhanden)."
 
 # VNC xstartup (XFCE) – ASCII-sicher, keine Umlaute
+# Vordergrund + eigener D-Bus: Hintergrund-& beendet das Script sofort, und
+# genau das wertet TigerVNC als Fehlstart (exited too early). Ohne
+# dbus-launch gibt xfce4-session im LXC sofort auf (kein User-Session-Bus).
 pct push "$CT_ID" /dev/stdin /home/ingetrazo/.vnc/xstartup <<XSTARTUP
 #!/bin/sh
 unset SESSION_MANAGER
 unset DBUS_SESSION_BUS_ADDRESS
-xrdb \$HOME/.Xresources 2>/dev/null || true
-startxfce4 &
+exec dbus-launch --exit-with-session startxfce4
 XSTARTUP
 pct exec "$CT_ID" -- chmod +x /home/ingetrazo/.vnc/xstartup
 pct exec "$CT_ID" -- chown ingetrazo:ingetrazo /home/ingetrazo/.vnc/xstartup
@@ -311,6 +313,8 @@ UNITNOVNC
 fi
 pct exec "$CT_ID" -- systemctl daemon-reload
 pct exec "$CT_ID" -- systemctl enable ingetrazo-vnc ingetrazo-novnc
+# Alte Loop-Reste (v1/v2-Restarts) sauber beenden, sonst kaempfen zwei Xvnc um :1
+pct exec "$CT_ID" -- su -s /bin/bash ingetrazo -c "vncserver -kill :1" >/dev/null 2>&1 || true
 # restart statt start: Re-Runs (Update-Modus, neues VNC-Passwort) aktivieren so sicher
 pct exec "$CT_ID" -- systemctl restart ingetrazo-vnc
 pct exec "$CT_ID" -- systemctl restart ingetrazo-novnc
