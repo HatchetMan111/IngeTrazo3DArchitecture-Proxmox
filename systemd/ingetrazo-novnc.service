@@ -1,0 +1,16 @@
+[Unit]
+Description=IngeTrazo noVNC Web Access (6080 -> VNC 5901)
+After=network-online.target ingetrazo-vnc.service
+Wants=network-online.target
+Requires=ingetrazo-vnc.service
+
+[Service]
+Type=simple
+User=nobody
+Group=nogroup
+ExecStart=/usr/bin/websockify --web /usr/share/novnc 0.0.0.0:6080 localhost:5901
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

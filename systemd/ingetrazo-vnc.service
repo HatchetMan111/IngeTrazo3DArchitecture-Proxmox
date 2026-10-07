@@ -1,0 +1,18 @@
+[Unit]
+Description=IngeTrazo VNC Server (:1, localhost only)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+User=ingetrazo
+Group=ingetrazo
+Environment=HOME=/home/ingetrazo
+ExecStartPre=/bin/mkdir -p /home/ingetrazo/.vnc
+ExecStart=/usr/bin/vncserver :1 -localhost yes -geometry 1600x900 -depth 24
+ExecStop=/usr/bin/vncserver -kill :1
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
